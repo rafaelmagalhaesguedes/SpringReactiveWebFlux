@@ -1,8 +1,8 @@
 package com.web.flux.services.impl;
 
+import com.web.flux.mapper.GenericMapper;
 import com.web.flux.services.ProductService;
 import com.web.flux.entities.Product;
-import com.web.flux.mapper.ProductMapper;
 import com.web.flux.repositories.ProductRepository;
 import com.web.flux.services.dto.ProductResponseDTO;
 import com.web.flux.services.exceptions.ProductNotFoundException;
@@ -22,16 +22,19 @@ import java.util.UUID;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final ProductMapper productMapper;
+    private final GenericMapper mapper;
 
     @Override
     public Mono<ProductResponseDTO> createProduct(ProductRequestDTO requestDTO) {
-        Product product = productMapper.toEntity(requestDTO);
-        product.setId(UUID.randomUUID());
-        product.setCreatedAt(LocalDateTime.now());
-
-        return productRepository.save(product)
-                .map(productMapper::toResponseDTO);
+        return Mono.just(requestDTO)
+                .map(dto -> {
+                    Product product = mapper.toEntity(dto, Product.class);
+                    product.setId(UUID.randomUUID());
+                    product.setCreatedAt(LocalDateTime.now());
+                    return product;
+                })
+                .flatMap(productRepository::save)
+                .map(savedProduct -> mapper.toDTO(savedProduct, ProductResponseDTO.class));
     }
 
     @Override
@@ -39,14 +42,14 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findAll()
                 .skip((long) page * size)
                 .take(size)
-                .map(productMapper::toResponseDTO)
+                .map(product -> mapper.toDTO(product, ProductResponseDTO.class))
                 .switchIfEmpty(Mono.error(ProductNotFoundException::new));
     }
 
     @Override
     public Mono<ProductResponseDTO> getProductById(UUID id) throws ProductNotFoundException {
         return productRepository.findById(id)
-                .map(productMapper::toResponseDTO)
+                .map(product -> mapper.toDTO(product, ProductResponseDTO.class))
                 .switchIfEmpty(Mono.error(ProductNotFoundException::new));
     }
 
@@ -63,7 +66,7 @@ public class ProductServiceImpl implements ProductService {
                     return productRepository.save(existingProduct);
                 })
                 .doOnNext(product -> product.setUpdatedAt(LocalDateTime.now()))
-                .map(productMapper::toResponseDTO);
+                .map(product -> mapper.toDTO(product, ProductResponseDTO.class));
     }
 
     @Override
