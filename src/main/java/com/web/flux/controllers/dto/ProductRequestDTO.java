@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -32,4 +33,7 @@ public class ProductRequestDTO {
     @NotNull(message = "The purchase value price cannot be null")
     @Min(value = 0, message = "The purchase value price must be greater than or equal to 0")
     private BigDecimal purchaseValue;
+
+    @NotNull(message = "The category id cannot be null")
+    private UUID categoryId;
 }

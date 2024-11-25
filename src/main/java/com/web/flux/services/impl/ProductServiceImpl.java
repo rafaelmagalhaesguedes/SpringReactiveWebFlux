@@ -5,6 +5,7 @@ import com.web.flux.services.ProductService;
 import com.web.flux.entities.Product;
 import com.web.flux.repositories.ProductRepository;
 import com.web.flux.services.dto.ProductResponseDTO;
+import com.web.flux.services.exceptions.CategoryNotFoundException;
 import com.web.flux.services.exceptions.ProductNotFoundException;
 import com.web.flux.controllers.dto.ProductRequestDTO;
 
@@ -21,25 +22,25 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
-    private final ProductRepository productRepository;
+    private final ProductRepository repository;
     private final GenericMapper mapper;
 
-    @Override
-    public Mono<ProductResponseDTO> createProduct(ProductRequestDTO requestDTO) {
+    @Override public Mono<ProductResponseDTO> create(ProductRequestDTO requestDTO) {
         return Mono.just(requestDTO)
                 .map(dto -> {
                     Product product = mapper.toEntity(dto, Product.class);
                     product.setId(UUID.randomUUID());
                     product.setCreatedAt(LocalDateTime.now());
+                    product.setCategoryId(requestDTO.getCategoryId());
                     return product;
                 })
-                .flatMap(productRepository::save)
+                .flatMap(repository::save)
                 .map(savedProduct -> mapper.toDTO(savedProduct, ProductResponseDTO.class));
     }
 
     @Override
-    public Flux<ProductResponseDTO> getProductsByPage(int page, int size) throws ProductNotFoundException {
-        return productRepository.findAll()
+    public Flux<ProductResponseDTO> getByPage(int page, int size) {
+        return repository.findAll()
                 .skip((long) page * size)
                 .take(size)
                 .map(product -> mapper.toDTO(product, ProductResponseDTO.class))
@@ -47,15 +48,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Mono<ProductResponseDTO> getProductById(UUID id) throws ProductNotFoundException {
-        return productRepository.findById(id)
-                .map(product -> mapper.toDTO(product, ProductResponseDTO.class))
-                .switchIfEmpty(Mono.error(ProductNotFoundException::new));
+    public Mono<ProductResponseDTO> getById(UUID id) {
+        return repository.findById(id)
+                .switchIfEmpty(Mono.error(ProductNotFoundException::new))
+                .map(product -> mapper.toDTO(product, ProductResponseDTO.class));
     }
 
     @Override
-    public Mono<ProductResponseDTO> updateProduct(UUID id, ProductRequestDTO requestDTO) throws ProductNotFoundException {
-        return productRepository.findById(id)
+    public Mono<ProductResponseDTO> update(UUID id, ProductRequestDTO requestDTO) {
+        return repository.findById(id)
                 .switchIfEmpty(Mono.error(ProductNotFoundException::new))
                 .flatMap(existingProduct -> {
                     existingProduct.setName(requestDTO.getName());
@@ -63,16 +64,16 @@ public class ProductServiceImpl implements ProductService {
                     existingProduct.setSaleValue(requestDTO.getSaleValue());
                     existingProduct.setPurchaseValue(requestDTO.getPurchaseValue());
                     existingProduct.setQuantity(requestDTO.getQuantity());
-                    return productRepository.save(existingProduct);
+                    return repository.save(existingProduct);
                 })
                 .doOnNext(product -> product.setUpdatedAt(LocalDateTime.now()))
                 .map(product -> mapper.toDTO(product, ProductResponseDTO.class));
     }
 
     @Override
-    public Mono<Void> deleteProduct(UUID id) throws ProductNotFoundException {
-        return productRepository.findById(id)
+    public Mono<Void> delete(UUID id) {
+        return repository.findById(id)
                 .switchIfEmpty(Mono.error(ProductNotFoundException::new))
-                .flatMap(product -> productRepository.deleteById(id));
+                .flatMap(product -> repository.deleteById(id));
     }
 }

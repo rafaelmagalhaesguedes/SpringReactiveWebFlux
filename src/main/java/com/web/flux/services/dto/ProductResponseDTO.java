@@ -21,4 +21,5 @@ public class ProductResponseDTO {
     private BigDecimal saleValue;
     private BigDecimal purchaseValue;
     private LocalDateTime createdAt;
+    private CategoryResponseDTO category;
 }

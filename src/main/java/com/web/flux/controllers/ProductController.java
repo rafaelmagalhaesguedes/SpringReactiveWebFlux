@@ -26,7 +26,7 @@ public class ProductController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<ProductResponseDTO> createProduct(@Valid @RequestBody ProductRequestDTO requestDTO) {
-        return productService.createProduct(requestDTO);
+        return productService.create(requestDTO);
     }
 
     // Obter todos os produtos com paginação
@@ -34,25 +34,25 @@ public class ProductController {
     public Flux<ProductResponseDTO> getAllProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return productService.getProductsByPage(page, size);
+        return productService.getByPage(page, size);
     }
 
     // Obter um produto pelo ID
     @GetMapping("/{id}")
     public Mono<ProductResponseDTO> getProductById(@PathVariable UUID id) {
-        return productService.getProductById(id);
+        return productService.getById(id);
     }
 
     // Atualizar um produto existente
     @PutMapping("/{id}")
     public Mono<ProductResponseDTO> updateProduct(@PathVariable UUID id, @Valid @RequestBody ProductRequestDTO requestDTO) {
-        return productService.updateProduct(id, requestDTO);
+        return productService.update(id, requestDTO);
     }
 
     // Deletar um produto
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteProduct(@PathVariable UUID id) {
-        return productService.deleteProduct(id);
+        return productService.delete(id);
     }
 }

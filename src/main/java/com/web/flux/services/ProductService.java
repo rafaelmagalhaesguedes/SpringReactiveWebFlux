@@ -9,9 +9,9 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 public interface ProductService {
-    Mono<ProductResponseDTO> createProduct(ProductRequestDTO requestDTO);
-    Flux<ProductResponseDTO> getProductsByPage(int page, int size);
-    Mono<ProductResponseDTO> getProductById(UUID id) throws ProductNotFoundException;
-    Mono<ProductResponseDTO> updateProduct(UUID id, ProductRequestDTO requestDTO) throws ProductNotFoundException;
-    Mono<Void> deleteProduct(UUID id) throws ProductNotFoundException;
+    Mono<ProductResponseDTO> create(ProductRequestDTO requestDTO);
+    Flux<ProductResponseDTO> getByPage(int page, int size);
+    Mono<ProductResponseDTO> getById(UUID id);
+    Mono<ProductResponseDTO> update(UUID id, ProductRequestDTO requestDTO);
+    Mono<Void> delete(UUID id);
 }
